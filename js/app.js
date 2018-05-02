@@ -4,9 +4,7 @@
 
 // Helper functions for grabbing multiple elements
 const getDestructuredElementsByIds = (document) => {
-  return new Proxy({}, {
-    get: (_, id) => document.getElementById(id),
-  });
+  return new Proxy({}, { get: (_, id) => document.getElementById(id) });
 };
 
 const { 

@@ -14,8 +14,13 @@ const {
   addDescription, 
   addValue, 
   addButton,
-  incomeList,
-  expensesList,
+  budgetContainer,
+  budgetIncomeList,
+  budgetExpensesList,
+  budgetValue,
+  budgetIncomeValue,
+  budgetExpensesValue,
+  budgetExpensesPercentage,
 } = getDestructuredElementsByIds(document);
 
 const BudgetController = (() => {
@@ -61,7 +66,7 @@ const BudgetController = (() => {
       let newItem, id;
 
       if (data.allItems[type].length > 0) {
-        id = data.allItems[type][data.allItems[type].length - 1];
+        id = data.allItems[type][data.allItems[type].length - 1].id + 1;
       } else {
         id = 0;
       }
@@ -74,6 +79,15 @@ const BudgetController = (() => {
 
       data.allItems[type].push(newItem);
       return newItem;
+    },
+    deleteItem(type, id) {
+      const ids = _.map(data.allItems[type], (currentItem) => {
+        return currentItem.id;
+      });
+      const index = ids.indexOf(id);
+      if (index !== -1) {
+        data.allItems[type].splice(index, 1);
+      }
     },
     calculateBudget() {
       calculateTotal('exp');
@@ -116,12 +130,14 @@ const UIController = (() => {
             <div class="right clearfix">
               <div class="item__value">${obj.value}</div>
               <div class="item__delete">
-                <button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button>
+                <button class="item__delete--btn">
+                  <i class="ion-ios-close-outline"></i>
+                </button>
               </div>
             </div>
           </div>
         `;
-        grabbedDomElement = incomeList;
+        grabbedDomElement = budgetIncomeList;
       } else if (type === 'exp') {
         grabbedDomContent = `
           <div class="item clearfix" id="expense-${obj.id}">
@@ -130,15 +146,21 @@ const UIController = (() => {
               <div class="item__value">- ${obj.value}</div>
               <div class="item__percentage">21%</div>
               <div class="item__delete">
-                <button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button>
+                <button class="item__delete--btn">
+                  <i class="ion-ios-close-outline"></i>
+                </button>
               </div>
             </div>
           </div>
         `;
-        grabbedDomElement = expensesList;
+        grabbedDomElement = budgetExpensesList;
       }
 
       grabbedDomElement.insertAdjacentHTML('beforeend', grabbedDomContent);
+    },
+    deleteListItem(selectorId) {
+      const grabbedListItem = document.getElementById(selectorId);
+      grabbedListItem.parentNode.removeChild(grabbedListItem);
     },
     clearFields() {
       const fields = [addDescription, addValue];
@@ -146,6 +168,16 @@ const UIController = (() => {
         field.value = '';
       });
       fields[0].focus();
+    },
+    displayBudget(obj) {
+      budgetValue.textContent = `+ ${obj.budget}`;
+      budgetIncomeValue.textContent = `+ ${obj.totalInc}`;
+      budgetExpensesValue.textContent = `- ${obj.totalExp}`;
+      if (obj.expensePercentage > 0) {
+        budgetExpensesPercentage.textContent = `${obj.expensePercentage}%`;
+      } else {
+        budgetExpensesPercentage.textContent = '---';
+      }
     },
   };
 })();
@@ -155,6 +187,7 @@ const AppController = ((BudgetController, UIController) => {
     BudgetController.calculateBudget();
     const budget = BudgetController.getBudget();
     console.log(budget);
+    UIController.displayBudget(budget);
   };
 
   const addItemController = () => {
@@ -168,19 +201,37 @@ const AppController = ((BudgetController, UIController) => {
     }
   };
 
+  const deleteItemController = (event) => {
+    const itemId = event.target.parentNode.parentNode.parentNode.parentNode.id;
+    if (itemId) {
+      const splitId = itemId.split('-');
+      const type = splitId[0];
+      const id = parseInt(splitId[1], 10);
+
+      BudgetController.deleteItem(type, id);
+      UIController.deleteListItem(itemId);
+      updateBudget();
+    }
+  };
+
   const setupEventListeners = () => {
     addButton.addEventListener('click', addItemController);
     document.addEventListener('keypress', (event) => {
       const charCode = event.which ? event.which : event.keyCode;
-      
-      if (charCode === 13) { 
-        addItemController();
-      }
+      if (charCode === 13) addItemController();
     });
+
+    budgetContainer.addEventListener('click', deleteItemController);
   };
 
   return {
     init() {
+      UIController.displayBudget({
+        budget: 0,
+        totalInc: 0,
+        totalExp: 0,
+        expensePercentage: -1,
+      });
       setupEventListeners();
     },
   };

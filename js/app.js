@@ -123,7 +123,7 @@ const UIController = (() => {
 
       if (type === 'inc') {
         grabbedDomContent = `
-          <div class="item clearfix" id="income-${obj.id}">
+          <div class="item clearfix" id="inc-${obj.id}">
             <div class="item__description">${obj.description}</div>
             <div class="right clearfix">
               <div class="item__value">${obj.value}</div>
@@ -138,7 +138,7 @@ const UIController = (() => {
         grabbedDomElement = budgetIncomeList;
       } else if (type === 'exp') {
         grabbedDomContent = `
-          <div class="item clearfix" id="expense-${obj.id}">
+          <div class="item clearfix" id="exp-${obj.id}">
             <div class="item__description">${obj.description}</div>
             <div class="right clearfix">
               <div class="item__value">- ${obj.value}</div>

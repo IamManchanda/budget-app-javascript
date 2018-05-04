@@ -27,6 +27,17 @@ const BudgetController = (() => {
       this.id = id;
       this.description = description;
       this.value = value;
+      this.percentage = -1;
+    }
+    calculatePercentage(totalIncome) {
+      if (totalIncome > 0) {
+        this.percentage = Math.round((this.value / totalIncome) * 100);
+      } else {
+        this.percentage = -1;
+      }
+    }
+    getPercentage() {
+      return this.percentage;
     }
   }
 
@@ -98,6 +109,17 @@ const BudgetController = (() => {
         data.expensePercentage = -1;
       }
     },
+    calculatePercentages() {
+      _.forEach(data.allItems.exp, (currentItem) => {
+        currentItem.calculatePercentage(data.totals.inc);
+      });
+    },
+    getPercentages() {
+      const allPercentages = _.map(data.allItems.exp, (currentItem) => {
+        return currentItem.getPercentage();
+      });
+      return allPercentages;
+    },
     getBudget() {
       return {
         budget: data.budget,
@@ -141,8 +163,8 @@ const UIController = (() => {
           <div class="item clearfix" id="exp-${obj.id}">
             <div class="item__description">${obj.description}</div>
             <div class="right clearfix">
-              <div class="item__value">- ${obj.value}</div>
-              <div class="item__percentage">21%</div>
+              <div class="item__value">${obj.value}</div>
+              <div class="item__percentage"></div>
               <div class="item__delete">
                 <button class="item__delete--btn">
                   <i class="ion-ios-close-outline"></i>
@@ -168,14 +190,26 @@ const UIController = (() => {
       fields[0].focus();
     },
     displayBudget(obj) {
-      budgetValue.textContent = `+ ${obj.budget}`;
-      budgetIncomeValue.textContent = `+ ${obj.totalInc}`;
-      budgetExpensesValue.textContent = `- ${obj.totalExp}`;
+      budgetValue.textContent = `${obj.budget}`;
+      budgetIncomeValue.textContent = `${obj.totalInc}`;
+      budgetExpensesValue.textContent = `${obj.totalExp}`;
       if (obj.expensePercentage > 0) {
         budgetExpensesPercentage.textContent = `${obj.expensePercentage}%`;
       } else {
         budgetExpensesPercentage.textContent = '---';
       }
+    },
+    displayPercentages(percentages) {
+      const expensesPercentageLabel = document.getElementsByClassName('item__percentage');
+      const fields = [...expensesPercentageLabel];
+
+      _.forEach(fields, (currentField, index) => {
+        if (percentages[index] > 0) {
+          currentField.textContent = `${percentages[index]} %`;
+        } else {
+          currentField.textContent = '---';
+        }
+      });
     },
   };
 })();
@@ -184,10 +218,13 @@ const AppController = ((BudgetController, UIController) => {
   const updateBudget = () => {
     BudgetController.calculateBudget();
     const budget = BudgetController.getBudget();
-    console.log(budget);
     UIController.displayBudget(budget);
   };
-
+  const updatePercentages = () => {
+    BudgetController.calculatePercentages();
+    const percentages = BudgetController.getPercentages();
+    UIController.displayPercentages(percentages);
+  };
   const addItemController = () => {
     const input = UIController.getInput();
     
@@ -196,9 +233,9 @@ const AppController = ((BudgetController, UIController) => {
       UIController.addListItem(newItem, input.type);
       UIController.clearFields();
       updateBudget();
+      updatePercentages();
     }
   };
-
   const deleteItemController = (event) => {
     const itemId = event.target.parentNode.parentNode.parentNode.parentNode.id;
     if (itemId) {
@@ -209,9 +246,9 @@ const AppController = ((BudgetController, UIController) => {
       BudgetController.deleteItem(type, id);
       UIController.deleteListItem(itemId);
       updateBudget();
+      updatePercentages();
     }
   };
-
   const setupEventListeners = () => {
     addButton.addEventListener('click', addItemController);
     document.addEventListener('keypress', (event) => {

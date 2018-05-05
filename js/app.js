@@ -19,6 +19,7 @@ const {
   budgetIncomeValue,
   budgetExpensesValue,
   budgetExpensesPercentage,
+  monthLabel,
 } = getDestructuredElementsByIds(document);
 
 const BudgetController = (() => {
@@ -132,6 +133,20 @@ const BudgetController = (() => {
 })();
 
 const UIController = (() => {
+  const formatNumber = (number, type) => {
+    number = Math.abs(number);
+    number = number.toFixed(2);
+    const numberSplit = number.split('.');
+
+    // eslint-disable-next-line
+    let [integer, decimal] = numberSplit;
+    if (integer.length > 3) {
+      integer = `${integer.substr(0, integer.length - 3)},${integer.substr(integer.length - 3, 3)}`;
+    }
+
+    return `${type === 'exp' ? '-' : '+'} ${integer}.${decimal}`;
+  };
+
   return {
     getInput() {
       return { 
@@ -148,7 +163,7 @@ const UIController = (() => {
           <div class="item clearfix" id="inc-${obj.id}">
             <div class="item__description">${obj.description}</div>
             <div class="right clearfix">
-              <div class="item__value">${obj.value}</div>
+              <div class="item__value">${formatNumber(obj.value, type)}</div>
               <div class="item__delete">
                 <button class="item__delete--btn">
                   <i class="ion-ios-close-outline"></i>
@@ -163,7 +178,7 @@ const UIController = (() => {
           <div class="item clearfix" id="exp-${obj.id}">
             <div class="item__description">${obj.description}</div>
             <div class="right clearfix">
-              <div class="item__value">${obj.value}</div>
+              <div class="item__value">${formatNumber(obj.value, type)}</div>
               <div class="item__percentage"></div>
               <div class="item__delete">
                 <button class="item__delete--btn">
@@ -190,9 +205,12 @@ const UIController = (() => {
       fields[0].focus();
     },
     displayBudget(obj) {
-      budgetValue.textContent = `${obj.budget}`;
-      budgetIncomeValue.textContent = `${obj.totalInc}`;
-      budgetExpensesValue.textContent = `${obj.totalExp}`;
+      let type;
+      obj.budget > 0 ? type = 'inc' : type = 'exp';
+
+      budgetValue.textContent = `${formatNumber(obj.budget, type)}`;
+      budgetIncomeValue.textContent = `${formatNumber(obj.totalInc, 'inc')}`;
+      budgetExpensesValue.textContent = `${formatNumber(obj.totalExp, 'exp')}`;
       if (obj.expensePercentage > 0) {
         budgetExpensesPercentage.textContent = `${obj.expensePercentage}%`;
       } else {
@@ -210,6 +228,23 @@ const UIController = (() => {
           currentField.textContent = '---';
         }
       });
+    },
+    displayMonth() {
+      const now = new Date();
+      const month = now.toLocaleString('en-us', {
+        month: 'long',
+      });
+      const year = now.getFullYear();
+
+      monthLabel.textContent = `${month}, ${year}`;
+    },
+    changedType() {
+      const fields = [addType, addDescription, addValue];
+      
+      _.forEach(fields, (currentField) => {
+        currentField.classList.toggle('alert-focus');
+      });
+      addButton.classList.toggle('alert');
     },
   };
 })();
@@ -255,12 +290,13 @@ const AppController = ((BudgetController, UIController) => {
       const charCode = event.which ? event.which : event.keyCode;
       if (charCode === 13) addItemController();
     });
-
     budgetContainer.addEventListener('click', deleteItemController);
+    addType.addEventListener('change', UIController.changedType);
   };
 
   return {
     init() {
+      UIController.displayMonth();
       UIController.displayBudget({
         budget: 0,
         totalInc: 0,
@@ -273,4 +309,3 @@ const AppController = ((BudgetController, UIController) => {
 })(BudgetController, UIController);
 
 AppController.init();
-

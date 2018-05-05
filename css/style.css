@@ -26,10 +26,10 @@ body {
 .right {
   float: right;
 }
-.red {
+.alert {
   color: #ff5049 !important;
 }
-.red-focus:focus {
+.alert-focus:focus {
   border: 1px solid #ff5049 !important;
 }
 
@@ -38,7 +38,7 @@ body {
 **********************************************/
 
 .top {
-  height: 40vh;
+  height: 50vh;
   background-image: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)),
     url(https://images.pexels.com/photos/461077/pexels-photo-461077.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260);
   background-size: cover;
@@ -60,6 +60,10 @@ body {
   text-align: center;
   margin-bottom: 10px;
   font-weight: 300;
+}
+
+.budget__title--month {
+  font-weight: bold;
 }
 
 .budget__value {
@@ -155,7 +159,7 @@ body {
   width: 400px;
 }
 .add__value {
-  width: 100px;
+  width: 150px;
 }
 
 .add__btn {

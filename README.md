@@ -2,7 +2,7 @@
 
 ## Run app locally
 
-- Clone repo `git clone git@github.com:IamManchanda/IPL-dashboard.git` (or download zip) 
+- Clone repo `git clone git@github.com:IamManchanda/budget-app-javascript.git` (or download zip) 
 - cd `budget-app-javascript`
 - `npm install` for Installing this!
 - `npm run dev` for Running this!
